@@ -12,16 +12,17 @@ module Docx
           'tr'
         end
 
-        def initialize(node)
+        def initialize(node, document_properties = {})
           @node = node
           @properties_tag = ''
+          @document_properties = document_properties
         end
 
         # Array of cells contained within row
         def cells
-          @node.xpath('w:tc').map {|c_node| Containers::TableCell.new(c_node) }
+          @node.xpath('w:tc').map { |c_node| Containers::TableCell.new(c_node, @document_properties) }
         end
-        
+
       end
     end
   end

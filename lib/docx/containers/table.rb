@@ -13,14 +13,15 @@ module Docx
           'tbl'
         end
 
-        def initialize(node)
+        def initialize(node, document_properties = {})
           @node = node
           @properties_tag = 'tblGrid'
+          @document_properties = document_properties
         end
 
         # Array of row
         def rows
-          @node.xpath('w:tr').map {|r_node| Containers::TableRow.new(r_node) }
+          @node.xpath('w:tr').map { |r_node| Containers::TableRow.new(r_node, @document_properties) }
         end
 
         def row_count
@@ -44,7 +45,7 @@ module Docx
         def each_rows
           rows.each { |r| yield(r) }
         end
-        
+
       end
     end
   end
