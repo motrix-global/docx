@@ -23,8 +23,8 @@ module Docx
 
         def initialize(node, document_properties = {})
           @node = node
-          @text_nodes = @node.xpath('w:t').map {|t_node| Elements::Text.new(t_node) }
-          @text_nodes = @node.xpath('w:t|w:r/w:t').map {|t_node| Elements::Text.new(t_node) }
+          @text_nodes = @node.xpath('w:t|w:r/w:t').map { |t_node| Elements::Text.new(t_node) }
+          @drawings = @node.xpath('w:drawing').map { |t_node| Containers::Drawing.new(t_node, document_properties) }
 
           @properties_tag = 'rPr'
           @text       = parse_text || ''
@@ -82,6 +82,7 @@ module Docx
           styles['font-size'] = "#{font_size}pt" if font_size != @font_size
           html = html_tag(:span, content: html, styles: styles) unless styles.empty?
           html = html_tag(:a, content: html, attributes: {href: href, target: "_blank"}) if hyperlink?
+          html += @drawings.map { |d| d.to_html }.join if @drawings
           return html
         end
 

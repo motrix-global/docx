@@ -50,7 +50,8 @@ module Docx
     def document_properties
       {
         font_size: font_size,
-        hyperlinks: hyperlinks
+        hyperlinks: hyperlinks,
+        images: images
       }
     end
 
@@ -102,6 +103,17 @@ module Docx
 
     def hyperlink_relationships
       @rels.xpath("//xmlns:Relationship[contains(@Type,'hyperlink')]")
+    end
+
+    # Image targets are extracted from the document.xml.rels file
+    def images
+      image_relationships.each_with_object({}) do |rel, hash|
+        hash[rel.attributes['Id'].value] = rel.attributes['Target'].value
+      end
+    end
+
+    def image_relationships
+      @rels.xpath("//xmlns:Relationship[contains(@Type,'image')]")
     end
 
     ##
