@@ -48,12 +48,12 @@ module Docx
           text_runs.each do |text_run|
             html << text_run.to_html
           end
-          styles = { 'font-size' => "#{font_size}pt" }
+          styles = {}
+          styles['font-size'] = "#{font_size}pt" if size_attribute
           styles['color'] = "##{font_color}" if font_color
           styles['text-align'] = alignment if alignment
           html_tag(:p, content: html, styles: styles)
         end
-
 
         # Array of text runs contained within paragraph
         def text_runs
@@ -77,9 +77,11 @@ module Docx
           alignment == 'center'
         end
 
-        def font_size
-          size_attribute = @node.at_xpath('w:pPr//w:sz//@w:val')
+        def size_attribute
+          @node.at_xpath('w:pPr//w:sz//@w:val')
+        end
 
+        def font_size
           return @font_size unless size_attribute
 
           size_attribute.value.to_i / 2
