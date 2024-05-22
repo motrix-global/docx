@@ -49,6 +49,7 @@ module Docx
             html << text_run.to_html
           end
           styles = {}
+          styles['name'] = style if style_id
           styles['font-size'] = "#{font_size}pt" if size_attribute
           styles['color'] = "##{font_color}" if font_color
           styles['text-align'] = alignment if alignment
@@ -100,7 +101,7 @@ module Docx
         end
 
         def style_id
-          style_property.get_attribute('w:val')
+          style_property&.get_attribute('w:val')
         end
 
         def style=(identifier)
@@ -115,7 +116,7 @@ module Docx
         private
 
         def style_property
-          properties&.at_xpath('w:pStyle') || properties&.add_child('<w:pStyle/>').first
+          properties&.at_xpath('w:pStyle') || properties&.add_child('<w:pStyle/>')&.first
         end
 
         # Returns the alignment if any, or nil if left
