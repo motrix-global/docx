@@ -22,7 +22,10 @@ module Docx
         def cells
           @cells
         end
-        
+
+        def to_html
+          HTML.content_tag(:tr, HTML.join(cells.map(&:to_html)))
+        end
       end
     end
   end

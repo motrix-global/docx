@@ -1,10 +1,12 @@
 require 'nokogiri'
 require 'docx/elements'
 require 'docx/containers'
+require 'html'
 
 module Docx
   module Elements
     module Element
+      extend HTML
       DEFAULT_TAG = ''
 
       # Ensure that a 'tag' corresponding to the XML element that defines the element is defined
@@ -60,39 +62,6 @@ module Docx
       # Creation/edit methods
       def copy
         self.class.new(@node.dup)
-      end
-
-      # A method to wrap content in an HTML tag.
-      # Currently used in paragraph and text_run for the to_html methods
-      #
-      # content:: The base text content for the tag.
-      # styles:: Hash of the inline CSS styles to be applied. e.g.
-      #          { 'font-size' => '12pt', 'text-decoration' => 'underline' }
-      #
-      def html_tag(name, options = {})
-        content = options[:content]
-        styles = options[:styles]
-        attributes = options[:attributes]
-
-        html = "<#{name.to_s}"
-        
-        unless styles.nil? || styles.empty?
-          styles_array = []
-          styles.each do |property, value|
-            styles_array << "#{property.to_s}:#{value};"
-          end
-          html << " style=\"#{styles_array.join('')}\""
-        end
-        
-        unless attributes.nil? || attributes.empty?
-          attributes.each do |attr_name, attr_value|
-            html << " #{attr_name}=\"#{attr_value}\""
-          end
-        end
-        
-        html << ">"
-        html << content if content
-        html << "</#{name.to_s}>"
       end
 
       module ClassMethods

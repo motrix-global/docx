@@ -17,7 +17,7 @@ module Docx
         end
 
         def to_html
-          html_tag(:img, attributes: { src: src })
+          HTML.tag(:img, src: src)
         end
 
         def src

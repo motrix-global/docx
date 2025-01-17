@@ -23,6 +23,9 @@ module Docx
           @node.xpath('w:tc').map { |c_node| Containers::TableCell.new(c_node, @document_properties) }
         end
 
+        def to_html(header: false)
+          HTML.content_tag(:tr, HTML.join(cells.map { |c| c.to_html(header: header) }))
+        end
       end
     end
   end

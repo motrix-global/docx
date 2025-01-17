@@ -28,9 +28,29 @@ module Docx
           @node.xpath('w:p').map { |p_node| Containers::Paragraph.new(p_node, @document_properties) }
         end
 
+        def split_p
+          word_paragraphs = @node.xpath('w:p').map do |paragraph|
+            splitted_runs = paragraph.xpath('w:r').slice_when { |prev, _| prev.at_xpath('w:br') }.to_a
+            paragraph.xpath('w:r').each(&:remove)
+
+            splitted_runs.map do |runs_group|
+              new_paragraph = paragraph.dup
+              runs_group.each { |r| new_paragraph.add_child(r) }
+              new_paragraph
+            end
+          end.flatten
+
+          word_paragraphs.map { |p_node| Containers::Paragraph.new(p_node, @document_properties) }
+        end
+
         # Iterate over each text run within a paragraph's cell
         def each_paragraph
           paragraphs.each { |tr| yield(tr) }
+        end
+
+        def to_html(header:)
+          cell_tag = header ? :th : :td
+          HTML.content_tag(cell_tag, HTML.join(paragraphs.map { |p| HTML.join(p.text_runs.map(&:to_html)) }))
         end
 
         alias_method :text, :to_s

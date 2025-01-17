@@ -25,6 +25,7 @@ module Docx
           @node = node
           @text_nodes = @node.xpath('w:t|w:r/w:t').map { |t_node| Elements::Text.new(t_node) }
           @drawings = @node.xpath('w:drawing').map { |t_node| Containers::Drawing.new(t_node, document_properties) }
+          @objects = @node.xpath('w:object').map { |t_node| Containers::BinObject.new(t_node, document_properties) }
 
           @properties_tag = 'rPr'
           @text       = parse_text || ''
@@ -59,8 +60,8 @@ module Docx
 
         def parse_formatting
           {
-            italic:    !@node.xpath('.//w:i').empty?,
-            bold:      !@node.xpath('.//w:b').empty?,
+            italic: @node.at_xpath('.//w:i') && @node.at_xpath('.//w:i').attributes['val']&.value != '0',
+            bold: @node.at_xpath('.//w:b') && @node.at_xpath('.//w:b').attributes['val']&.value != '0',
             underline: !@node.xpath('.//w:u').empty?,
             strike: !@node.xpath('.//w:strike').empty?
           }
@@ -73,16 +74,17 @@ module Docx
         # Return text as a HTML fragment with formatting based on properties.
         def to_html
           html = @text
-          html = html_tag(:em, content: html) if italicized?
-          html = html_tag(:strong, content: html) if bolded?
-          html = html_tag(:s, content: html) if striked?
-          styles = {}
-          styles['text-decoration'] = 'underline' if underlined?
+          html = HTML.content_tag(:em, html) if italicized?
+          html = HTML.content_tag(:strong, html) if bolded?
+          html = HTML.content_tag(:s, html) if striked?
+          styles = []
+          styles << 'text-decoration: underline' if underlined?
           # No need to be granular with font size down to the span level if it doesn't vary.
-          styles['font-size'] = "#{font_size}pt" if font_size != @font_size
-          html = html_tag(:span, content: html, styles: styles) unless styles.empty?
-          html = html_tag(:a, content: html, attributes: {href: href, target: "_blank"}) if hyperlink?
-          html += @drawings.map { |d| d.to_html }.join if @drawings
+          # styles << "font-size :#{font_size}pt" if font_size != @font_size
+          html = HTML.content_tag(:span, html, styles: styles.join(';')) unless styles.empty?
+          html = HTML.content_tag(:a, html, href:, target: '_blank') if hyperlink?
+          html = HTML.join([html, *HTML.join(@drawings.map(&:to_html))]) if @drawings
+          html = HTML.join([html, *HTML.join(@objects.map(&:to_html))]) if @objects
           return html
         end
 

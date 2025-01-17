@@ -1,5 +1,6 @@
 require 'docx/containers/text_run'
 require 'docx/containers/container'
+require 'html'
 
 module Docx
   module Elements
@@ -44,21 +45,30 @@ module Docx
 
         # Return paragraph as a <p></p> HTML fragment with formatting based on properties.
         def to_html
-          html = ''
-          text_runs.each do |text_run|
-            html << text_run.to_html
-          end
+          html = HTML.join(text_runs.map(&:to_html))
           styles = {}
-          styles['name'] = style if style_id
+          styles['name'] = style if style_id && !style&.empty?
           styles['font-size'] = "#{font_size}pt" if size_attribute
           styles['color'] = "##{font_color}" if font_color
           styles['text-align'] = alignment if alignment
-          html_tag(:p, content: html, styles: styles)
+
+          return HTML.content_tag(:ul, HTML.content_tag(:li, html, styles)) if list_item_level
+
+          HTML.content_tag(:p, html, styles)
         end
 
         # Array of text runs contained within paragraph
         def text_runs
-          @node.xpath('w:r|w:hyperlink').map { |r_node| Containers::TextRun.new(r_node, @document_properties) }
+          @node.xpath('w:r|w:hyperlink|m:oMath|m:oMathPara').map do |r_node|
+            case r_node.name
+            when 'r', 'hyperlink'
+              next Containers::TextRun.new(r_node, @document_properties)
+            when 'oMathPara'
+              next Containers::Math.new(r_node, false, @document_properties)
+            when 'oMath'
+              next Containers::Math.new(r_node, true, @document_properties)
+            end
+          end
         end
 
         # Iterate over each text run within a paragraph
@@ -91,6 +101,14 @@ module Docx
         def font_color
           color_tag = @node.xpath('w:r//w:rPr//w:color').first
           color_tag ? color_tag.attributes['val'].value : nil
+        end
+
+        def list_item_level
+          @node.at_xpath('w:pPr//w:numPr//w:ilvl//@w:val')
+        end
+
+        def list_id
+          @node.at_xpath('w:pPr//w:numPr//w:numId//@w:val')&.value
         end
 
         def style

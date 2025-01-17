@@ -19,6 +19,12 @@ module Docx
           @document_properties = document_properties
         end
 
+        def to_html
+          table_header = HTML.content_tag(:thead, rows[0].to_html(header: true))
+          table_body = HTML.content_tag(:tbody, HTML.join(rows[1..].map(&:to_html)))
+          HTML.content_tag(:table, HTML.join([table_header, table_body]))
+        end
+
         # Array of row
         def rows
           @node.xpath('w:tr').map { |r_node| Containers::TableRow.new(r_node, @document_properties) }

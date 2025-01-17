@@ -51,7 +51,9 @@ module Docx
       {
         font_size: font_size,
         hyperlinks: hyperlinks,
-        images: images
+        images: images,
+        objects: objects,
+        doc_bundle: @zip
       }
     end
 
@@ -84,6 +86,17 @@ module Docx
       @doc.xpath('//w:document//w:body//w:tbl').map { |t_node| parse_table_from t_node }
     end
 
+    def elements
+      @doc.xpath('//w:document//w:body/w:p|//w:document//w:body//w:tbl').map do |p_node|
+        case p_node.name
+        when 'p'
+          parse_paragraph_from p_node
+        when 'tbl'
+          parse_table_from p_node
+        end
+      end
+    end
+
     # Some documents have this set, others don't.
     # Values are returned as half-points, so to get points, that's why it's divided by 2.
     def font_size
@@ -114,6 +127,17 @@ module Docx
 
     def image_relationships
       @rels.xpath("//xmlns:Relationship[contains(@Type,'image')]")
+    end
+
+    # Image targets are extracted from the document.xml.rels file
+    def objects
+      object_relationships.each_with_object({}) do |rel, hash|
+        hash[rel.attributes['Id'].value] = rel.attributes['Target'].value
+      end
+    end
+
+    def object_relationships
+      @rels.xpath("//xmlns:Relationship[contains(@Type,'oleObject')]")
     end
 
     ##
