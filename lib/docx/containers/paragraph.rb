@@ -9,10 +9,11 @@ module Docx
         include Container
         include Elements::Element
 
+        TEXT_RUN_NODES = 'm:oMath|m:oMathPara|w:r|w:hyperlink'.freeze
+
         def self.tag
           'p'
         end
-
 
         # Child elements: pPr, r, fldSimple, hlink, subDoc
         # http://msdn.microsoft.com/en-us/library/office/ee364458(v=office.11).aspx
@@ -59,7 +60,7 @@ module Docx
 
         # Array of text runs contained within paragraph
         def text_runs
-          @node.xpath('w:r|w:hyperlink|m:oMath|m:oMathPara').map do |r_node|
+          @node.xpath(TEXT_RUN_NODES).map do |r_node|
             case r_node.name
             when 'r', 'hyperlink'
               next Containers::TextRun.new(r_node, @document_properties)

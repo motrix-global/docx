@@ -30,8 +30,8 @@ module Docx
 
         def split_p
           word_paragraphs = @node.xpath('w:p').map do |paragraph|
-            splitted_runs = paragraph.xpath('w:r').slice_when { |prev, _| prev.at_xpath('w:br') }.to_a
-            paragraph.xpath('w:r').each(&:remove)
+            splitted_runs = paragraph.xpath(Paragraph::TEXT_RUN_NODES).slice_when { |prev, _| prev.at_xpath('w:br') }.to_a
+            paragraph.xpath(Paragraph::TEXT_RUN_NODES).each(&:remove)
 
             splitted_runs.map do |runs_group|
               new_paragraph = paragraph.dup
