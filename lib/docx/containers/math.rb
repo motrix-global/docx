@@ -22,6 +22,8 @@ module Docx
           @document_properties = document_properties
           @inline = inline
 
+          @node.xpath('m:oMathParaPr').each {|n| n.remove}
+
           @formula = Plurimath::Math.parse(@node.to_xml, :omml)
         end
 
