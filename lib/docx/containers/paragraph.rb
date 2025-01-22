@@ -100,7 +100,7 @@ module Docx
         end
 
         def font_color
-          color_tag = @node.xpath('w:r//w:rPr//w:color').first
+          color_tag = @node.xpath('w:r//w:rPr//w:color').first || @node.xpath('w:pPr//w:rPr//w:color').first
           color_tag ? color_tag.attributes['val'].value : nil
         end
 
