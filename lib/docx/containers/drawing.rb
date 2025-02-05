@@ -25,7 +25,7 @@ module Docx
         end
 
         def image_id
-          @node.at_xpath('.//*:blip').attributes['embed'].value
+          @node.at_xpath('.//*:blip')&.attributes&.[]('embed')&.value
         end
       end
     end

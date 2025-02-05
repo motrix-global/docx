@@ -61,7 +61,12 @@ module Docx
         def text
           return HTML::Fragment.new('ERROR') unless @formula
 
-          latex_formula = @formula.to_latex.gsub('<', ' \lt ').gsub('>', ' \gt ').gsub(/[[:space:]]+/, ' ').strip
+          latex_formula = @formula.to_latex
+                                  .gsub('<', ' \lt ')
+                                  .gsub('>', ' \gt ')
+                                  .gsub(/[[:space:]]+/, ' ')
+                                  .gsub('\vysmblkcircle', '∙')
+                                  .strip
           HTML::Fragment.new(latex_formula)
         rescue StandardError => e
           puts e
